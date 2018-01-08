@@ -1,10 +1,10 @@
-# ELF_Resolve
-ELF/SO file resolve
+# ELF_Parser
+ELF/SO file parser
 
-## Usage:elf_resolve xxx
+## Usage:elf_parser xxx
 
-## Windows useer
+## Windows user
 Create a VS,inport the file
 
 ## Linux user
-g++ -fpermissive elf_resolve -o elf_resolve
+g++ -fpermissive elf_parser -o elf_parser
