@@ -1,5 +1,5 @@
 # ELF_Parser
-ELF/SO file parser
+ELF/SO 32bit/64bit file parser
 
 ## Usage:elf_parser xxx
 
