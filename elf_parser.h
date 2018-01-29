@@ -13,3 +13,6 @@ void elf32_section_header_parser(ifstream* elf_file, ELF32_DESC *elf_desc);
 void elf64_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc);
 void elf64_program_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc);
 void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc);
+
+
+void find_section_header_name(ifstream* elf_file,ELF32_DESC* elf_desc,unsigned int sh_name);

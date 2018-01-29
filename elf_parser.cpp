@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 			/* ELF32 section header */
 			elf32_section_header_parser(&elf_file, &elf_desc);
 
-			//printf("\n%s\n", elf_desc.elf_header.e_shstrndx + elf_desc.section_header_v[1].sh_name);
+			//find_section_header_name(&elf_file,&elf_desc, 9);
 
 		}
 		else if (ei_class == ELFCLASS64) {
@@ -62,7 +62,6 @@ int main(int argc, char* argv[]) {
 			elf64_program_header_parser(&elf_file, &elf_desc);
 			/* ELF64 section header */
 			elf64_section_header_parser(&elf_file, &elf_desc);
-
 		}
 		else {
 			cout << "not know file class" << endl;
@@ -74,6 +73,32 @@ int main(int argc, char* argv[]) {
 
 	printf("hehe");
 	return 0;
+}
+
+
+/*
+count section header name:
+strnametable_addr = e_shstrndx*e_shentsize+e_shoff
+strnametable_offset+sh_name
+*/
+void find_section_header_name(ifstream* elf_file,ELF32_DESC* elf_desc,unsigned int sh_name) {
+	char section_name[32] = {0};
+	unsigned int strnametable_addr = 0;
+	unsigned long long file_position = elf_file->tellg();
+	
+	unsigned int strnametable_offset = elf_desc->elf_header.e_shentsize*elf_desc->elf_header.e_shstrndx + elf_desc->elf_header.e_shoff+offset_of(ELF32_SECTION_HEADER,sh_offset);
+
+	elf_file->seekg(strnametable_offset, ios::beg);
+	elf_file->read((char*)(&strnametable_addr), sizeof(unsigned int));
+	
+	// printf("\nstrnametable addr:%x\n", strnametable_addr);
+
+	elf_file->seekg(strnametable_addr+sh_name, ios::beg);
+
+	elf_file->read(section_name, 30);
+	elf_file->seekg(file_position, ios::beg);
+
+	printf("\tsection name:%s\n", section_name);
 }
 
 
@@ -444,7 +469,7 @@ void elf64_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 
 	printf("0x%0.8x:\n", offsetof(ELF64_HEADER, e_entry));
 	cout << "e_entry:0x";
-	printf("%x\t", elf_desc->elf_header.e_entry);
+	printf("%llx\t", elf_desc->elf_header.e_entry);
 	if (elf_desc->elf_header.e_entry == 0) {
 		cout << "not exec elf";
 	}
@@ -453,7 +478,7 @@ void elf64_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 
 	printf("0x%0.8x:\n", offsetof(ELF64_HEADER, e_phoff));
 	cout << "e_phoff:0x";
-	printf("%x\t", elf_desc->elf_header.e_phoff);
+	printf("%llx\t", elf_desc->elf_header.e_phoff);
 	if (elf_desc->elf_header.e_phoff == 0) {
 		cout << "no program header table";
 	}
@@ -465,7 +490,7 @@ void elf64_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 
 	printf("0x%0.8x:\n", offsetof(ELF64_HEADER, e_shoff));
 	cout << "e_shoff:0x";
-	printf("%x\t", elf_desc->elf_header.e_shoff);
+	printf("%llx\t", elf_desc->elf_header.e_shoff);
 	if (elf_desc->elf_header.e_shoff == 0) {
 		cout << "no section header table";
 	}
@@ -665,7 +690,7 @@ void elf64_program_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		cout << "There have no program table" << endl;
 		return;
 	}
-	printf("Program addr:0x%0.8x,Program num:%x\n-------------------\n", elf_desc->elf_header.e_phoff, elf_desc->elf_header.e_phnum);
+	printf("Program addr:0x%llx,Program num:%x\n-------------------\n", elf_desc->elf_header.e_phoff, elf_desc->elf_header.e_phnum);
 
 	
 	ELF64_PROGRAM_HEADER* elf_program_header_buffer = (ELF64_PROGRAM_HEADER*)malloc(ELF64_PROGRAM_HEADER_SIZE);
@@ -721,23 +746,23 @@ void elf64_program_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		cout << "file offset" << endl;
 
 		cout << "p_vaddr:";
-		printf("0x%0.8x\t", elf_desc->program_header_v[i].p_vaddr);
+		printf("0x%llx\t", elf_desc->program_header_v[i].p_vaddr);
 		cout << "virtual address in memory image" << endl;
 
 		cout << "p_paddr:";
-		printf("0x%0.8x\t", elf_desc->program_header_v[i].p_paddr);
+		printf("0x%llx\t", elf_desc->program_header_v[i].p_paddr);
 		cout << "Physical address" << endl;
 
 		cout << "p_filesz";
-		printf("0x%0.8x\t", elf_desc->program_header_v[i].p_filesz);
+		printf("0x%llx\t", elf_desc->program_header_v[i].p_filesz);
 		cout << "size of contents in file" << endl;
 
 		cout << "p_memsz:";
-		printf("0x%0.8x\t", elf_desc->program_header_v[i].p_memsz);
+		printf("0x%llx\t", elf_desc->program_header_v[i].p_memsz);
 		cout << "size of contens in memory" << endl;
 
 		cout << "p_flags:";
-		printf("0x%0.8x\t", elf_desc->program_header_v[i].p_flags);
+		printf("0x%llx\t", elf_desc->program_header_v[i].p_flags);
 		cout << "access:";
 		switch (elf_desc->program_header_v[i].p_flags)
 		{
@@ -771,7 +796,7 @@ void elf64_program_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		}
 
 		cout << "p_align:";
-		printf("0x%0.8x\t", elf_desc->program_header_v[i].p_align);
+		printf("0x%llx\t", elf_desc->program_header_v[i].p_align);
 		cout << "Alignment in memory and file" << endl;
 
 		cout << "\n-----------------------------------------------\n" << endl;
@@ -804,7 +829,9 @@ void elf32_section_header_parser(ifstream* elf_file, ELF32_DESC *elf_desc) {
 		
 		cout << "sh_name:";
 		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_name);
-		cout << "section name index" << endl;
+		cout << "section name index";
+		find_section_header_name(elf_file, elf_desc, elf_desc->section_header_v[i].sh_name);
+		cout << endl;
 
 		cout << "sh_type:";
 		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_type);
@@ -822,11 +849,13 @@ void elf32_section_header_parser(ifstream* elf_file, ELF32_DESC *elf_desc) {
 			break;
 		case SHT_STRTAB:
 			cout << "string table section";
+			/*
 			cout << "\n";
 			printf("string table file offset:0x%x\n", elf_desc->section_header_v[i].sh_offset);
 			//unsigned int addr = &(*elf_file);
 			//printf("string table string:%s\n", elf_desc->section_header_v[i].sh_offset+elf_file);
 			//getchar();
+			*/
 			break;
 		case SHT_RELA:
 			cout << "relocation section with addends";
@@ -915,7 +944,8 @@ void elf32_section_header_parser(ifstream* elf_file, ELF32_DESC *elf_desc) {
 		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_entsize);
 		cout << "every section item size" << endl;
 
-		cout << "\n-----------------------------------------------\n" << endl;
+		
+		cout << "\n current tellg:" << hex << elf_file->tellg()<<"-----------------------------------------------\n" << endl;
 	}
 
 
@@ -933,7 +963,7 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		cout << "There have no section table" << endl;
 		return;
 	}
-	printf("Section addr:0x%0.8x,Section Num:%x\n-------------------\n", elf_desc->elf_header.e_shoff, elf_desc->elf_header.e_shnum);
+	printf("Section addr:0x%llx,Section Num:%d\n-------------------\n", elf_desc->elf_header.e_shoff, elf_desc->elf_header.e_shnum);
 
 	ELF64_SECTION_HEADER* elf_section_header_buffer = (ELF64_SECTION_HEADER*)malloc(ELF64_SECTION_HEADER_SIZE);
 
@@ -966,7 +996,7 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		case SHT_STRTAB:
 			cout << "string table section";
 			cout << "\n";
-			printf("string table file offset:0x%x\n", elf_desc->section_header_v[i].sh_offset);
+			printf("string table file offset:0x%llx\n", elf_desc->section_header_v[i].sh_offset);
 			//unsigned int addr = &(*elf_file);
 			//printf("string table string:%s\n", elf_desc->section_header_v[i].sh_offset+elf_file);
 			//getchar();
@@ -1005,7 +1035,7 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		cout << endl;
 
 		cout << "sh_flags:";
-		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_flags);
+		printf("0x%llx\t", elf_desc->section_header_v[i].sh_flags);
 		cout << "section flags\t";
 		switch (elf_desc->section_header_v[i].sh_flags) {
 		case SHF_WRITE:
@@ -1027,7 +1057,7 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		cout << endl;
 
 		cout << "sh_addr:";
-		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_addr);
+		printf("0x%llx\t", elf_desc->section_header_v[i].sh_addr);
 		cout << "Address in memory image\t";
 		if (elf_desc->section_header_v[i].sh_addr == 0) {
 			cout << "This section don't need image";
@@ -1035,11 +1065,11 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		cout << endl;
 
 		cout << "sh_offset:";
-		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_offset);
+		printf("0x%llx\t", elf_desc->section_header_v[i].sh_offset);
 		cout << "Offset in file" << endl;
 
 		cout << "sh_size:";
-		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_size);
+		printf("0x%llx\t", elf_desc->section_header_v[i].sh_size);
 		cout << "section size" << endl;
 
 		cout << "sh_link:";
@@ -1051,11 +1081,11 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 		cout << "section info Depends on section type" << endl;
 
 		cout << "sh_addralign:";
-		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_addralign);
+		printf("0x%llx\t", elf_desc->section_header_v[i].sh_addralign);
 		cout << "Alignment" << endl;
 
 		cout << "sh_entsize:";
-		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_entsize);
+		printf("0x%llx\t", elf_desc->section_header_v[i].sh_entsize);
 		cout << "every section item size" << endl;
 
 		cout << "\n-----------------------------------------------\n" << endl;
