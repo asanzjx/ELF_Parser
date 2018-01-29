@@ -1,5 +1,5 @@
 # ELF_Parser
-ELF/SO 32bit/64bit file parser
+ELF/SO 32bit/64bit file parser v2
 
 ## Usage:elf_parser xxx
 
@@ -7,4 +7,4 @@ ELF/SO 32bit/64bit file parser
 Create a VS,inport the file
 
 ## Linux user
-g++ -fpermissive elf_parser -o elf_parser
+g++ -fpermissive elf_parser_v2.cpp -o elf_parser
