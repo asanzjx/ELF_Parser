@@ -94,6 +94,9 @@ typedef uint64_t	Elf64_Xword;
 #define ELF32_SECTION_HEADER_SIZE	sizeof(ELF32_SECTION_HEADER)
 #define ELF64_SECTION_HEADER_SIZE	sizeof(ELF64_SECTION_HEADER)
 
+
+
+
 using namespace std;
 
 /*	ELF header	*/

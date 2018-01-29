@@ -102,6 +102,38 @@ void find_section_header_name(ifstream* elf_file,ELF32_DESC* elf_desc,unsigned i
 }
 
 
+template<typename ELF_DESC>void find_section_name(ifstream* elf_file, ELF_DESC* elf_desc, unsigned int sh_name) {
+	char section_name[32] = { 0 };
+	unsigned int strnametable_addr = 0;
+	unsigned long long file_position = elf_file->tellg();
+	unsigned long long sh_offset = 0;
+
+	if (typeid(elf_desc) == typeid(ELF32_DESC*)) {
+		sh_offset = offset_of(ELF32_SECTION_HEADER, sh_offset);
+	}
+	else if(typeid(elf_desc) == typeid(ELF64_DESC*)) {
+		sh_offset = offset_of(ELF64_SECTION_HEADER, sh_offset);
+	}
+	else {
+		cout << "sh_offset error" << endl;
+		return;
+	}
+
+	unsigned long long strnametable_offset = elf_desc->elf_header.e_shentsize*elf_desc->elf_header.e_shstrndx + elf_desc->elf_header.e_shoff + sh_offset;
+
+	elf_file->seekg(strnametable_offset, ios::beg);
+	elf_file->read((char*)(&strnametable_addr), sizeof(unsigned int));
+
+	// printf("\nstrnametable addr:%x\n", strnametable_addr);
+
+	elf_file->seekg(strnametable_addr + sh_name, ios::beg);
+
+	elf_file->read(section_name, 30);
+	elf_file->seekg(file_position, ios::beg);
+
+	printf("\tsection name:%s\n", section_name);
+}
+
 
 void elf32_header_parser(ifstream* elf_file, ELF32_DESC *elf_desc) {
 	int i = 0;
@@ -830,7 +862,8 @@ void elf32_section_header_parser(ifstream* elf_file, ELF32_DESC *elf_desc) {
 		cout << "sh_name:";
 		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_name);
 		cout << "section name index";
-		find_section_header_name(elf_file, elf_desc, elf_desc->section_header_v[i].sh_name);
+		//find_section_header_name(elf_file, elf_desc, elf_desc->section_header_v[i].sh_name);
+		find_section_name<ELF32_DESC>(elf_file,elf_desc,elf_desc->section_header_v[i].sh_name);
 		cout << endl;
 
 		cout << "sh_type:";
@@ -977,7 +1010,9 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 
 		cout << "sh_name:";
 		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_name);
-		cout << "section name index" << endl;
+		cout << "section name index";
+		find_section_name<ELF64_DESC>(elf_file, elf_desc, elf_desc->section_header_v[i].sh_name);
+		cout << endl;
 
 		cout << "sh_type:";
 		printf("0x%0.8x\t", elf_desc->section_header_v[i].sh_type);
@@ -995,11 +1030,13 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc) {
 			break;
 		case SHT_STRTAB:
 			cout << "string table section";
+			/*
 			cout << "\n";
 			printf("string table file offset:0x%llx\n", elf_desc->section_header_v[i].sh_offset);
 			//unsigned int addr = &(*elf_file);
 			//printf("string table string:%s\n", elf_desc->section_header_v[i].sh_offset+elf_file);
 			//getchar();
+			*/
 			break;
 		case SHT_RELA:
 			cout << "relocation section with addends";

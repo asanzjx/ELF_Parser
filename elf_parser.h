@@ -16,3 +16,7 @@ void elf64_section_header_parser(ifstream* elf_file, ELF64_DESC *elf_desc);
 
 
 void find_section_header_name(ifstream* elf_file,ELF32_DESC* elf_desc,unsigned int sh_name);
+
+
+/* use template to find section name */
+template<typename ELF_DESC>void find_section_name(ifstream* elf_file,ELF_DESC* elf_desc, unsigned int sh_name);
